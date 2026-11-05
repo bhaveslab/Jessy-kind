@@ -25,3 +25,8 @@ Preserve the approved images as assets/jessy.webp, assets/main.webp, assets/lang
 ## Operations
 
 Inspect actual repository and team/project before writes. Do not modify bhaveslab/bhaves-lab or bhaveslab/bhaves-app. The Vercel project jessy-kind-peru has not been verified by the connected account, and no deployment URL exists yet.
+## USD and Peruvian sol checkout requirement (Nov 5, 2026)
+
+Jessy’s storefront must support buyers paying in either **USD** or **PEN** when the Bhave Stripe merchant account and the buyer’s payment method support that currency. Keep the existing USD prices $16.99 / $9.99 / $7.00 unchanged. The homepage now shows *indicative* PEN equivalents S/ 58.64 / S/ 34.48 / S/ 24.16 based on a dated reference FX rate of 1 USD ≈ 3.4519 PEN (Nov 5, 2026); these are **not yet actual PEN Stripe prices**. Do not represent the displayed estimates as locked charge amounts.
+
+Codex: inspect Stripe Checkout's supported multi-currency options in the existing Bhave account (Adaptive Pricing vs explicit PEN currency prices). Implement a clear buyer-facing currency choice or Stripe-supported localization that permits USD and PEN, with the **actual charge currency and final amount shown before payment**. Verify a Peru checkout in PEN and USD fallback in hosted test conditions; confirm unsupported payment-method limitations. Do not fabricate a PEN payment or activate live sales before fulfillment tests. If using fixed PEN prices, establish an approved pricing policy and create linked PEN prices without changing the original USD price IDs. Record actual paid currency, gross amount, Stripe FX/processing fees, refunds, and settlement net.
