@@ -55,11 +55,24 @@ The Checkout return downloads the purchased PDF in the same browser for
 not create another fulfillment record. A refund or dispute blocks subsequent
 downloads. This flow uses card Checkout and does not send a download email.
 
-For settlement, export charges marked `storefront=jessy-kind` and use the
-Stripe charge ID as the unique row key. Record the book, USD revenue, refunds,
-actual Stripe fees and fee adjustments from balance transactions, agreed
-expenses, and net earnings. Reconcile any post-settlement refunds against
-the original charge. Enter only expenses Jessy and the merchant agreed on.
+Checkout enables Stripe Adaptive Pricing per session and keeps USD as the
+integration currency. Stripe shows the final amount and available payment
+currencies before payment. The site's PEN equivalents are estimates.
+For hosted Preview tests set `JESSY_TEST_CHECKOUT_LOCATION=PE`, complete a
+PEN test-card purchase, then set it to `US`, redeploy Preview, and complete
+a separate USD purchase. Verify the final charge currency before submitting,
+and verify the resulting PDF, repeat access, expiry, and refund behavior.
+The location override is only used in test mode.
+
+For settlement, export charges marked `storefront=jessy-kind` and key rows
+by Stripe charge ID. Join the successful PaymentIntent or Checkout event by
+PaymentIntent ID. Record the book and buyer-paid currency and amount from
+`presentment_details` when present, otherwise from the paid USD transaction.
+Keep integration and settlement currency and amounts in separate columns.
+Use the charge and refund balance transactions for settlement gross, signed
+refund adjustments, actual fees (including any FX fees), and settlement net.
+Reconcile later refunds against the original charge and subtract only
+agreed expenses, in the settlement currency. Keep test and live rows separate.
 
 Leave production checkout disabled until hosted test purchases, declines,
 refunds, download retries and settlement reconciliation pass. Production

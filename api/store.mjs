@@ -56,7 +56,12 @@ export default async function store(req, res) {
       const origin = new URL(process.env.JESSY_SITE_URL).origin;
       if (req.headers.origin !== origin) return res.status(403).end();
       const proof = /^[a-f0-9]{64}$/.test(nonce) ? nonce : randomBytes(32).toString('hex');
+      const testLocation = !live && process.env.JESSY_TEST_CHECKOUT_LOCATION;
       const session = await stripe('checkout/sessions', {
+        'adaptive_pricing[enabled]': 'true',
+        ...(['PE', 'US'].includes(testLocation)
+          ? { customer_email: 'jessy-test+location_' + testLocation + '@example.com' }
+          : {}),
         mode: 'payment', locale: 'es', 'payment_method_types[0]': 'card',
         'line_items[0][price]': price, 'line_items[0][quantity]': '1',
         success_url: origin + '/api/store?book=' + key + '&session={CHECKOUT_SESSION_ID}',
