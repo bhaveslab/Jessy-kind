@@ -32,3 +32,10 @@ Books are existing separate PDF artifacts. Do not place the full PDFs into this 
 ## Prepared website asset package
 
 `Jessy_Kind_Website_Starter.zip` is in the ChatGPT Peru project conversation. It contains the initial HTML and the four webp images. Use the images from the ZIP but preserve the latest committed `index.html` layout unless a correction is necessary.
+
+## Final launch steps — domain and inquiries
+
+- Jessy's business inquiry email is **jessycruzb12@gmail.com**. The website has a `mailto:` contact link. Do not create a separate inbox or assume access to her Gmail.
+- Connecting a custom domain is the **last step**, after website images, verified Stripe checkout, secure PDF fulfillment, and production deployment have passed QA.
+- Domain name is **not selected**. Never buy a domain, modify DNS, or transfer ownership without a concrete approved domain and required access.
+- Preserve the standalone Vercel project `jessy-kind-peru` in the **Bhaves Lab** team. Do not change other projects.
