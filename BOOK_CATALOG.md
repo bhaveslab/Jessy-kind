@@ -8,9 +8,9 @@ Repository: bhaveslab/Jessy-kind. Vercel team: Bhaves Lab. Intended Vercel proje
 |---|---:|---|---|---|
 | Aprendamos los Secretos de Vivir Bien Juntos | $16.99 | prod_VZcGa5AoIXs7MH | price_1UYT1q2c1Eq7UIp4IWriAUnv | vivir-bien-juntos |
 | Between Two Languages / Entre Dos Idiomas | $9.99 | prod_VZcP3POMVyX58X | price_1UYTAS2c1Eq7UIp4TXDyPSHS | entre-dos-idiomas |
-| Diario de La Noche Antes de Navidad | $7.00 | PENDING | PENDING | diario-navidad |
+| Diario de La Noche Antes de Navidad | $7.00 | prod_VZdVqAMarG8OTC | price_1UYUEk2c1Eq7UIp4A8QuVMU8 | diario-navidad |
 
-Merchant: existing Bhave Stripe live account. Prices are USD one-time payments; not subscriptions. Do not use a different account or create duplicate products. The third Stripe product could not be created due to a tool safety block and must be verified before use.
+Merchant: existing Bhave Stripe live account. Prices are USD one-time payments; not subscriptions. Do not use a different account or create duplicate products. The third Stripe product was created in the existing Bhave live account on November 5, 2026. All three Stripe products and prices exist. No checkout or paid fulfillment is activated.
 
 ## Fulfillment
 
