@@ -39,3 +39,28 @@ Books are existing separate PDF artifacts. Do not place the full PDFs into this 
 - Connecting a custom domain is the **last step**, after website images, verified Stripe checkout, secure PDF fulfillment, and production deployment have passed QA.
 - Domain name is **not selected**. Never buy a domain, modify DNS, or transfer ownership without a concrete approved domain and required access.
 - Preserve the standalone Vercel project `jessy-kind-peru` in the **Bhaves Lab** team. Do not change other projects.
+
+## Bookstore deployment
+
+Set `JESSY_CHECKOUT_MODE=test` in Preview and use the Stripe test secret as
+`STRIPE_SECRET_KEY`. Set `STRIPE_TEST_PRICE_DEVOTIONAL`,
+`STRIPE_TEST_PRICE_WORKBOOK`, and `STRIPE_TEST_PRICE_CHRISTMAS` to the
+matching one-time USD test prices. Set `JESSY_SITE_URL` to the deployment
+origin. Upload the final PDFs to a private Vercel Blob store and set
+`JESSY_PDF_DEVOTIONAL`, `JESSY_PDF_WORKBOOK`, and `JESSY_PDF_CHRISTMAS`
+to their private Blob URLs. Use that store's `BLOB_READ_WRITE_TOKEN`.
+
+The Checkout return downloads the purchased PDF in the same browser for
+24 hours after payment. Retrying the URL rechecks the same payment and does
+not create another fulfillment record. A refund or dispute blocks subsequent
+downloads. This flow uses card Checkout and does not send a download email.
+
+For settlement, export charges marked `storefront=jessy-kind` and use the
+Stripe charge ID as the unique row key. Record the book, USD revenue, refunds,
+actual Stripe fees and fee adjustments from balance transactions, agreed
+expenses, and net earnings. Reconcile any post-settlement refunds against
+the original charge. Enter only expenses Jessy and the merchant agreed on.
+
+Leave production checkout disabled until hosted test purchases, declines,
+refunds, download retries and settlement reconciliation pass. Production
+requires explicit `JESSY_CHECKOUT_MODE=live` and the Bhave live secret.
