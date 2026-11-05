@@ -77,3 +77,12 @@ agreed expenses, in the settlement currency. Keep test and live rows separate.
 Leave production checkout disabled until hosted test purchases, declines,
 refunds, download retries and settlement reconciliation pass. Production
 requires explicit `JESSY_CHECKOUT_MODE=live` and the Bhave live secret.
+
+## Private book storage — configured November 5, 2026
+
+- Vercel project: `prj_v1WgOTnmCyMBrNHfpUt2G8Rs20D3` (`jessy-kind-peru`).
+- Private Vercel Blob store: `jessy-kind-private-books` (`store_whfBKVsTLs4sZ1FG`), region `iad1`, access **private**.
+- Vercel generated encrypted `BLOB_READ_WRITE_TOKEN` and it is scoped to **Preview only**. Do not copy this token into code or logs.
+- The Blob store is empty as of creation; the three final PDFs are not uploaded. Use the existing private PDF storage/fulfillment integration, verify Blob upload paths, and upload only from approved PDF files. Do not expose public PDF URLs.
+- The connected Stripe account presently only exposes live mode. Obtain test credentials and test product prices through the Stripe test dashboard and set them directly in Vercel Preview; never place secret values in GitHub.
+- Checkout remains disabled until hosted test-mode PEN/USD payment, refund, download expiry, retry, and book-specific authorization tests pass. Only then consider production environment configuration.
