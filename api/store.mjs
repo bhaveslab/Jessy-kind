@@ -98,9 +98,8 @@ export default async function store(req, res) {
       return res.redirect(303, session.url);
     }
     if (req.method !== 'GET') return res.status(405).end();
-    if (!Object.hasOwn(catalog, key)) return res.status(404).send('Libro no encontrado.');
-    const config = productConfiguration(key, live);
-    if (!config) return res.status(503).send('Este libro aún no está disponible.');
+    const orderSummary = url.searchParams.get('order') === '1';
+    if (!orderSummary && !Object.hasOwn(catalog, key)) return res.status(404).send('Libro no encontrado.');
     const id = url.searchParams.get('session') || '';
     if (!/^cs_(test|live)_[a-zA-Z0-9]+$/.test(id) || !/^[a-f0-9]{64}$/.test(cookie)) {
       return res.status(403).send('Enlace de descarga inválido.');
@@ -111,7 +110,7 @@ export default async function store(req, res) {
     const purchased = session.line_items?.data || [];
     let cart;
     try { cart = parseCart(session.metadata?.cart); } catch { cart = null; }
-    const matching = cart?.find(item => item.book === key);
+    const matching = orderSummary ? true : cart?.find(item => item.book === key);
     const validLines = cart && purchased.length === cart.length &&
       cart.every(item => {
         const cfg = productConfiguration(item.book, live);
@@ -128,6 +127,15 @@ export default async function store(req, res) {
         Date.now() / 1000 >= charge.created + lifetime) {
       return res.status(403).send('La descarga no está disponible para este pago.');
     }
+    if (orderSummary) {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      return res.status(200).json({
+        books: cart.map(item => ({ book: item.book, quantity: item.quantity })),
+        expiresAt: (charge.created + lifetime) * 1000,
+      });
+    }
+    const config = productConfiguration(key, live);
+    if (!config) return res.status(503).send('Este libro aún no está disponible.');
     const file = await fetch(config.pdf, {
       headers: { Authorization: 'Bearer ' + process.env.BLOB_READ_WRITE_TOKEN },
       redirect: 'error',
