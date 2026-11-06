@@ -19,6 +19,7 @@ function readSavedCart() {
 }
 let cart = readSavedCart();
 let ready = false;
+let paymentMode = null;
 const usd = cents => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
 const count = () => Object.values(cart).reduce((sum, qty) => sum + qty, 0);
 function save() { try { localStorage.setItem(storageKey, JSON.stringify(cart)); } catch {} }
@@ -46,8 +47,12 @@ function render() {
   if (!count()) { const empty = document.createElement('p'); empty.className = 'muted'; empty.textContent = 'Tu carrito está vacío.'; container.append(empty); }
   $('cart-total').textContent = usd(Object.entries(cart).reduce((sum, [key, qty]) => sum + products[key].price * qty, 0));
   $('cart-checkout').disabled = !ready || !count();
+  $('cart-checkout').textContent = paymentMode === 'test' ? 'Finalizar compra de prueba' : 'Finalizar compra';
+  $('test-checkout-notice').hidden = !(ready && paymentMode === 'test');
   $('cart-clear').disabled = !count();
-  $('cart-status').textContent = ready ? 'Pago seguro mediante Stripe. Descarga digital después del pago.' : 'Las compras se habilitarán después de las pruebas de pago.';
+  $('cart-status').textContent = ready ?
+    (paymentMode === 'test' ? 'SOLO PRUEBA. No uses dinero ni tarjetas reales. Selecciona un solo libro y usa la tarjeta de prueba.' : 'Pago seguro mediante Stripe. Descarga digital después del pago.') :
+    'Las compras se habilitarán después de las pruebas de pago.';
   $('cart-payload').value = JSON.stringify(Object.entries(cart).map(([book, quantity]) => ({ book, quantity })));
 }
 function change(key, delta) {
@@ -89,5 +94,5 @@ window.addEventListener('storage', event => {
   }
 });
 fetch('/api/store?availability=1', { cache: 'no-store' })
-  .then(response => { ready = response.status === 204; render(); })
+  .then(response => { ready = response.status === 204; paymentMode = response.headers.get('X-Jessy-Checkout-Mode'); render(); })
   .catch(() => { ready = false; render(); });
