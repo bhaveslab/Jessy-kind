@@ -5,14 +5,20 @@ const products = {
 };
 const storageKey = 'jessy-kind-cart-v1';
 const $ = id => document.getElementById(id);
-let cart = {};
+function readSavedCart() {
+  const savedCart = {};
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    if (saved && typeof saved === 'object' && !Array.isArray(saved)) {
+      for (const [key, qty] of Object.entries(saved)) {
+        if (Object.hasOwn(products, key) && Number.isInteger(qty) && qty >= 1 && qty <= 10) savedCart[key] = qty;
+      }
+    }
+  } catch {}
+  return savedCart;
+}
+let cart = readSavedCart();
 let ready = false;
-try {
-  const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
-  for (const [key, qty] of Object.entries(saved)) {
-    if (Object.hasOwn(products, key) && Number.isInteger(qty) && qty >= 1 && qty <= 10) cart[key] = qty;
-  }
-} catch {}
 const usd = cents => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
 const count = () => Object.values(cart).reduce((sum, qty) => sum + qty, 0);
 function save() { try { localStorage.setItem(storageKey, JSON.stringify(cart)); } catch {} }
@@ -69,6 +75,17 @@ $('cart-form').addEventListener('submit', event => {
   $('cart-payload').value = JSON.stringify(Object.entries(cart).map(([book, quantity]) => ({ book, quantity })));
 });
 render();
+// Pages restored by the browser back-forward cache can still hold the pre-payment cart in memory.
+window.addEventListener('pageshow', () => {
+  cart = readSavedCart();
+  render();
+});
+window.addEventListener('storage', event => {
+  if (event.key === storageKey || event.key === null) {
+    cart = readSavedCart();
+    render();
+  }
+});
 fetch('/api/store?availability=1', { cache: 'no-store' })
   .then(response => { ready = response.status === 204; render(); })
   .catch(() => { ready = false; render(); });
