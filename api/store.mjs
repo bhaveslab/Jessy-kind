@@ -5,7 +5,7 @@ import { pipeline } from 'node:stream/promises';
 const catalog = {
   'vivir-bien-juntos': { price: 'price_1UYT1q2c1Eq7UIp4IWriAUnv', cents: 1699, env: 'DEVOTIONAL' },
   'entre-dos-idiomas': { price: 'price_1UYTAS2c1Eq7UIp4TXDyPSHS', cents: 999, env: 'WORKBOOK' },
-  'diario-navidad': { price: 'price_1UYUEk2c1Eq7UIp4A8QuVMU8', cents: 700, env: 'CHRISTMAS' },
+  'diario-navidad': { price: 'price_1UYnfg2c1Eq7UIp4DozRsQFC', cents: 999, env: 'CHRISTMAS' },
 };
 const hash = value => createHash('sha256').update(value).digest('hex');
 const scope = 'jessy-kind';
