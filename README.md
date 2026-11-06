@@ -35,7 +35,7 @@ Books are existing separate PDF artifacts. Do not place the full PDFs into this 
 
 ## Final launch steps — domain and inquiries
 
-- Jessy's business inquiry email is **jessycruzb12@gmail.com**. The website has a `mailto:` contact link. Do not create a separate inbox or assume access to her Gmail.
+- Jessy's business inquiry email is **inquiry@axiomaligned.com**. The website has a `mailto:` contact link. Do not create a separate inbox or assume access to her Gmail.
 - Connecting a custom domain is the **last step**, after website images, verified Stripe checkout, secure PDF fulfillment, and production deployment have passed QA.
 - Domain name is **not selected**. Never buy a domain, modify DNS, or transfer ownership without a concrete approved domain and required access.
 - Preserve the standalone Vercel project `jessy-kind-peru` in the **Bhaves Lab** team. Do not change other projects.
@@ -86,3 +86,7 @@ requires explicit `JESSY_CHECKOUT_MODE=live` and the Bhave live secret.
 - The Blob store is empty as of creation; the three final PDFs are not uploaded. Use the existing private PDF storage/fulfillment integration, verify Blob upload paths, and upload only from approved PDF files. Do not expose public PDF URLs.
 - The connected Stripe account presently only exposes live mode. Obtain test credentials and test product prices through the Stripe test dashboard and set them directly in Vercel Preview; never place secret values in GitHub.
 - Checkout remains disabled until hosted test-mode PEN/USD payment, refund, download expiry, retry, and book-specific authorization tests pass. Only then consider production environment configuration.
+
+
+## Jessy Kind business contact (November 2026)
+Public inquiries, order support, and customer service: inquiry@axiomaligned.com, managed by Axiom Aligned. Jessy remains the public-facing teacher/creator. Do not publish her personal email or alter personal channel login/ownership based on this contact update.
