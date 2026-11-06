@@ -55,7 +55,8 @@ export default async function store(req, res) {
   const live = mode === 'live';
   const secret = process.env.STRIPE_SECRET_KEY || '';
   if (!['test', 'live'].includes(mode) || !secret.startsWith(live ? 'sk_live_' : 'sk_test_') ||
-      (!live && process.env.VERCEL_ENV === 'production')) {
+      (!live && process.env.VERCEL_ENV === 'production' &&
+       process.env.JESSY_PUBLIC_TEST_CHECKOUT !== 'author-test-approved')) {
     return res.status(503).send('Las compras aún no están disponibles.');
   }
 
@@ -64,6 +65,7 @@ export default async function store(req, res) {
     const key = url.searchParams.get('book');
     const cookieHeader = req.headers.cookie || '';
     if (req.method === 'GET' && url.searchParams.has('availability')) {
+      res.setHeader('X-Jessy-Checkout-Mode', mode);
       const ready = Object.keys(catalog).every(k => productConfiguration(k, live));
       return res.status(ready ? 204 : 503).end();
     }
@@ -73,6 +75,10 @@ export default async function store(req, res) {
       let cart;
       try { cart = parseCart(req.body?.cart); } catch { return res.status(400).send('Carrito inválido.'); }
       if (!cart) return res.status(400).send('Carrito inválido.');
+      if (!live && process.env.VERCEL_ENV === 'production' &&
+          (cart.length !== 1 || cart[0].quantity !== 1)) {
+        return res.status(400).send('Para la prueba, selecciona solo un libro.');
+      }
       const items = cart.map(({ book, quantity }) => ({ book, quantity, config: productConfiguration(book, live) }));
       if (items.some(item => !item.config)) return res.status(503).send('Uno de los libros no está disponible.');
       const proof = randomBytes(32).toString('hex');
