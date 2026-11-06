@@ -79,7 +79,7 @@ export default async function store(req, res) {
       const proof = randomBytes(32).toString('hex');
       const params = {
         'adaptive_pricing[enabled]': 'true',
-        mode: 'payment', locale: 'es', 'payment_method_types[0]': 'card',
+        mode: 'payment', locale: 'es',
         success_url: origin + '/shop-success.html?session={CHECKOUT_SESSION_ID}',
         cancel_url: origin + '/#libros',
         'metadata[storefront]': scope,
