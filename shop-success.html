@@ -5,6 +5,37 @@ const names = {'vivir-bien-juntos':'Aprendamos los Secretos de Vivir Bien Juntos
 const session = new URL(location.href).searchParams.get('session') || '';
 const target = document.getElementById('downloads');
 const status = document.getElementById('status');
+// Only clear the cart after the server verifies a paid order. Keep canceled checkouts intact.
+function clearPaidItemsFromCart(books) {
+  try {
+    const cartKey = 'jessy-kind-cart-v1';
+    const processedKey = 'jessy-kind-cleared-orders-v1';
+    const history = JSON.parse(localStorage.getItem(processedKey) || '[]');
+    if (!Array.isArray(history) || history.includes(session)) return;
+
+    // A matching checkout snapshot stops an old receipt from clearing a newer cart.
+    const pending = JSON.parse(sessionStorage.getItem('jessy-kind-last-order') || 'null');
+    const purchased = books.filter(item => Object.hasOwn(names, item.book) &&
+      Number.isInteger(item.quantity) && item.quantity > 0);
+    const keys = new Set(purchased.map(item => item.book));
+    if (!Array.isArray(pending) || pending.length !== keys.size ||
+        !pending.every(book => keys.has(book))) return;
+
+    const saved = JSON.parse(localStorage.getItem(cartKey) || '{}');
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return;
+    for (const { book, quantity } of purchased) {
+      const remaining = Math.max(0, (Number.isInteger(saved[book]) ? saved[book] : 0) - quantity);
+      if (remaining) saved[book] = remaining;
+      else delete saved[book];
+    }
+    localStorage.setItem(cartKey, JSON.stringify(saved));
+    localStorage.setItem(processedKey, JSON.stringify([...history, session].slice(-30)));
+    sessionStorage.removeItem('jessy-kind-last-order');
+  } catch {
+    // Storage access can be unavailable; it must never block paid downloads.
+  }
+}
+
 async function showPurchasedBooks() {
   if (!/^cs_(test|live)_[a-zA-Z0-9]+$/.test(session)) {
     status.textContent = 'No encontramos una sesión de compra válida.';
@@ -15,6 +46,7 @@ async function showPurchasedBooks() {
     if (!response.ok) throw new Error('not-authorized');
     const order = await response.json();
     if (!Array.isArray(order.books) || !order.books.length) throw new Error('empty-order');
+    clearPaidItemsFromCart(order.books);
     for (const item of order.books) {
       if (!Object.hasOwn(names, item.book)) continue;
       const link = document.createElement('a');
