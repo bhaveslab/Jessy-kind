@@ -62,8 +62,7 @@ export default async function store(req, res) {
   try {
     const url = new URL(req.url, 'https://store.invalid');
     const key = url.searchParams.get('book');
-    const cookie = (req.headers.cookie || '').split(/;\s*/)
-      .find(value => value.startsWith(secureCookie + '='))?.split('=')[1] || '';
+    const cookieHeader = req.headers.cookie || '';
     if (req.method === 'GET' && url.searchParams.has('availability')) {
       const ready = Object.keys(catalog).every(k => productConfiguration(k, live));
       return res.status(ready ? 204 : 503).end();
@@ -92,8 +91,9 @@ export default async function store(req, res) {
         params['line_items[' + index + '][quantity]'] = String(item.quantity);
       }
       const session = await stripe('checkout/sessions', params);
-      if (!session.url) throw new Error('Missing checkout URL');
-      res.setHeader('Set-Cookie', secureCookie + '=' + proof +
+      if (!session.url || !/^cs_(test|live)_[a-zA-Z0-9]+$/.test(session.id || '')) throw new Error('Missing checkout URL or session ID');
+      // Each paid receipt retains its own proof, so a new order cannot invalidate an earlier download.
+      res.setHeader('Set-Cookie', secureCookie + '_' + session.id + '=' + proof +
         '; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=172800');
       return res.redirect(303, session.url);
     }
@@ -101,6 +101,10 @@ export default async function store(req, res) {
     const orderSummary = url.searchParams.get('order') === '1';
     if (!orderSummary && !Object.hasOwn(catalog, key)) return res.status(404).send('Libro no encontrado.');
     const id = url.searchParams.get('session') || '';
+    const proofCookie = cookieHeader.split(/;\s*/).find(value =>
+      value.startsWith(secureCookie + '_' + id + '=')) ||
+      cookieHeader.split(/;\s*/).find(value => value.startsWith(secureCookie + '='));
+    const cookie = proofCookie ? proofCookie.slice(proofCookie.indexOf('=') + 1) : '';
     if (!/^cs_(test|live)_[a-zA-Z0-9]+$/.test(id) || !/^[a-f0-9]{64}$/.test(cookie)) {
       return res.status(403).send('Enlace de descarga inválido.');
     }
