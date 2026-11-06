@@ -85,7 +85,9 @@ export default async function store(req, res) {
       const params = {
         'adaptive_pricing[enabled]': 'true',
         mode: 'payment', locale: 'es',
-        success_url: origin + '/shop-success.html?session={CHECKOUT_SESSION_ID}',
+        // Strong, 24-hour, purchase-bound recovery proof travels through Stripe's success redirect.
+        // It is hashed in Stripe metadata and is never a public Blob URL.
+        success_url: origin + '/shop-success.html?session={CHECKOUT_SESSION_ID}&access=' + proof,
         cancel_url: origin + '/#libros',
         'metadata[storefront]': scope,
         'metadata[cart]': JSON.stringify(cart),
@@ -111,7 +113,10 @@ export default async function store(req, res) {
       value.startsWith(secureCookie + '_' + id + '=')) ||
       cookieHeader.split(/;\s*/).find(value => value.startsWith(secureCookie + '='));
     const cookie = proofCookie ? proofCookie.slice(proofCookie.indexOf('=') + 1) : '';
-    if (!/^cs_(test|live)_[a-zA-Z0-9]+$/.test(id) || !/^[a-f0-9]{64}$/.test(cookie)) {
+    const access = url.searchParams.get('access') || '';
+    const validProofFormat = value => /^[a-f0-9]{64}$/.test(value);
+    if (!/^cs_(test|live)_[a-zA-Z0-9]+$/.test(id) ||
+        (!validProofFormat(cookie) && !validProofFormat(access))) {
       return res.status(403).send('Enlace de descarga inválido.');
     }
     const session = await stripe('checkout/sessions/' + id +
@@ -120,6 +125,10 @@ export default async function store(req, res) {
     const purchased = session.line_items?.data || [];
     let cart;
     try { cart = parseCart(session.metadata?.cart); } catch { cart = null; }
+    // The receipt's unguessable proof works if a mobile browser opens PDFs in a
+    // different browser context and cannot send its original checkout cookie.
+    const proofMatches = [cookie, access].some(value =>
+      validProofFormat(value) && session.metadata?.proof === hash(value));
     const matching = orderSummary ? true : cart?.find(item => item.book === key);
     const validLines = cart && purchased.length === cart.length &&
       cart.every(item => {
@@ -130,7 +139,7 @@ export default async function store(req, res) {
     const expectedTotal = cart?.reduce((sum, item) => sum + catalog[item.book].cents * item.quantity, 0);
     if (session.livemode !== live || session.mode !== 'payment' ||
         session.status !== 'complete' || session.payment_status !== 'paid' ||
-        session.metadata?.storefront !== scope || session.metadata?.proof !== hash(cookie) ||
+        session.metadata?.storefront !== scope || !proofMatches ||
         !matching || !validLines || session.currency !== 'usd' || session.amount_total !== expectedTotal ||
         !charge?.paid || !charge.captured || charge.refunded || charge.amount_refunded ||
         charge.disputed || !Number.isFinite(charge.created) ||
