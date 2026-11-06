@@ -3,19 +3,33 @@
 </style></head><body><main><div class="logo">Jessy Kind ♡</div><h1>Gracias por tu compra</h1><p>Tu pago se verificará antes de cada descarga. Selecciona tus libros para guardarlos en tu dispositivo.</p><div class="downloads" id="downloads"></div><p class="note" id="status">Las descargas están disponibles durante 24 horas después del pago, en este mismo navegador. Los pagos reembolsados o disputados no permiten nuevas descargas.</p><p><a class="home" href="/#libros">Volver a la tienda</a></p></main><script>
 const names = {'vivir-bien-juntos':'Aprendamos los Secretos de Vivir Bien Juntos','entre-dos-idiomas':'Between Two Languages / Entre Dos Idiomas','diario-navidad':'Diario de La Noche Antes de Navidad'};
 const session = new URL(location.href).searchParams.get('session') || '';
-let selected = [];
-try { selected = JSON.parse(sessionStorage.getItem('jessy-kind-last-order') || '[]'); } catch {}
 const target = document.getElementById('downloads');
-if (/^cs_(test|live)_[a-zA-Z0-9]+$/.test(session) && Array.isArray(selected) && selected.length) {
-  for (const key of selected) {
-    if (!Object.hasOwn(names,key)) continue;
-    const link = document.createElement('a');
-    link.textContent = 'Descargar: ' + names[key];
-    link.href = '/api/store?book=' + encodeURIComponent(key) + '&session=' + encodeURIComponent(session);
-    target.append(link);
+const status = document.getElementById('status');
+async function showPurchasedBooks() {
+  if (!/^cs_(test|live)_[a-zA-Z0-9]+$/.test(session)) {
+    status.textContent = 'No encontramos una sesión de compra válida.';
+    return;
   }
-} else {
-  document.getElementById('status').textContent = 'Para recuperar una descarga, abre la confirmación de compra en el navegador original. Si necesitas ayuda, escribe a Jessy.';
-  const contact = document.createElement('a'); contact.href = 'mailto:jessycruzb12@gmail.com'; contact.textContent = 'Contactar a Jessy'; target.append(contact);
+  try {
+    const response = await fetch('/api/store?order=1&session=' + encodeURIComponent(session), { cache: 'no-store' });
+    if (!response.ok) throw new Error('not-authorized');
+    const order = await response.json();
+    if (!Array.isArray(order.books) || !order.books.length) throw new Error('empty-order');
+    for (const item of order.books) {
+      if (!Object.hasOwn(names, item.book)) continue;
+      const link = document.createElement('a');
+      link.textContent = 'Descargar: ' + names[item.book];
+      link.href = '/api/store?book=' + encodeURIComponent(item.book) + '&session=' + encodeURIComponent(session);
+      target.append(link);
+    }
+    status.textContent = 'Descargas disponibles durante 24 horas desde el pago, en este navegador. Guarda tus archivos después de descargarlos.';
+  } catch {
+    status.textContent = 'No pudimos verificar tu compra en este navegador. Si completaste el pago, comunícate con Jessy para recibir asistencia.';
+    const contact = document.createElement('a');
+    contact.href = 'mailto:jessycruzb12@gmail.com?subject=Ayuda%20con%20mi%20compra';
+    contact.textContent = 'Contactar a Jessy';
+    target.append(contact);
+  }
 }
+showPurchasedBooks();
 </script></body></html>
