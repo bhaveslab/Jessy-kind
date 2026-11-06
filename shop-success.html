@@ -1,8 +1,23 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Gracias por tu compra | Jessy Kind</title><style>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><title>Gracias por tu compra | Jessy Kind</title><style>
 :root{font-family:system-ui,sans-serif;color:#382530;background:#fff8fb}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:linear-gradient(125deg,#fff8fb,#f4edff)}main{background:white;max-width:580px;width:100%;border:1px solid #efdbe8;border-radius:28px;padding:clamp(25px,6vw,55px);box-shadow:0 25px 60px #7838591a;text-align:center}.logo{font:italic 33px Georgia,serif;color:#9b345f}h1{font:normal clamp(2rem,5vw,3rem) Georgia,serif;margin-bottom:10px}p{line-height:1.6;color:#705661}.downloads{display:grid;gap:12px;margin:25px 0}.downloads a{display:block;padding:13px 15px;border-radius:40px;background:#96365f;color:white;font-weight:650;text-decoration:none}.downloads a:focus-visible{outline:3px solid #4a2045;outline-offset:3px}.note{font-size:.86rem}a.home{color:#853153}
-</style></head><body><main><div class="logo">Jessy Kind ♡</div><h1>Gracias por tu compra</h1><p>Tu pago se verificará antes de cada descarga. Selecciona tus libros para guardarlos en tu dispositivo.</p><div class="downloads" id="downloads"></div><p class="note" id="status">Las descargas están disponibles durante 24 horas después del pago, en este mismo navegador. Los pagos reembolsados o disputados no permiten nuevas descargas.</p><p><a class="home" href="/#libros">Volver a la tienda</a></p></main><script>
+</style></head><body><main><div class="logo">Jessy Kind ♡</div><h1>Gracias por tu compra</h1><p>Tu pago se verificará antes de cada descarga. Selecciona tus libros para guardarlos en tu dispositivo.</p><div class="downloads" id="downloads"></div><p class="note" id="status">Las descargas están disponibles durante 24 horas después del pago. Guarda el libro en tu dispositivo. Los pagos reembolsados o disputados no permiten nuevas descargas.</p><p><a class="home" href="/#libros">Volver a la tienda</a></p></main><script>
 const names = {'vivir-bien-juntos':'Aprendamos los Secretos de Vivir Bien Juntos','entre-dos-idiomas':'Between Two Languages / Entre Dos Idiomas','diario-navidad':'Diario de La Noche Antes de Navidad'};
-const session = new URL(location.href).searchParams.get('session') || '';
+const receiptUrl = new URL(location.href);
+const session = receiptUrl.searchParams.get('session') || '';
+const accessKey = 'jessy-kind-receipt-access-' + session;
+const returnedAccess = receiptUrl.searchParams.get('access') || '';
+let access = /^[a-f0-9]{64}$/.test(returnedAccess) ? returnedAccess : '';
+// Preserve the purchase-bound receipt proof while removing it from address bar/history.
+try {
+  if (access) sessionStorage.setItem(accessKey, access);
+  else access = sessionStorage.getItem(accessKey) || '';
+} catch {}
+if (returnedAccess) {
+  receiptUrl.searchParams.delete('access');
+  try { history.replaceState(null, '', receiptUrl.pathname + receiptUrl.search + receiptUrl.hash); } catch {}
+}
+if (!/^[a-f0-9]{64}$/.test(access)) access = '';
+const accessQuery = access ? '&access=' + encodeURIComponent(access) : '';
 const target = document.getElementById('downloads');
 const status = document.getElementById('status');
 // Only clear the cart after the server verifies a paid order. Keep canceled checkouts intact.
@@ -42,7 +57,7 @@ async function showPurchasedBooks() {
     return;
   }
   try {
-    const response = await fetch('/api/store?order=1&session=' + encodeURIComponent(session), { cache: 'no-store' });
+    const response = await fetch('/api/store?order=1&session=' + encodeURIComponent(session) + accessQuery, { cache: 'no-store' });
     if (!response.ok) throw new Error('not-authorized');
     const order = await response.json();
     if (!Array.isArray(order.books) || !order.books.length) throw new Error('empty-order');
@@ -51,10 +66,11 @@ async function showPurchasedBooks() {
       if (!Object.hasOwn(names, item.book)) continue;
       const link = document.createElement('a');
       link.textContent = 'Descargar: ' + names[item.book];
-      link.href = '/api/store?book=' + encodeURIComponent(item.book) + '&session=' + encodeURIComponent(session);
+      link.href = '/api/store?book=' + encodeURIComponent(item.book) + '&session=' + encodeURIComponent(session) + accessQuery;
+      link.referrerPolicy = 'no-referrer';
       target.append(link);
     }
-    status.textContent = 'Descargas disponibles durante 24 horas desde el pago, en este navegador. Guarda tus archivos después de descargarlos.';
+    status.textContent = 'Descargas disponibles durante 24 horas desde el pago. Guarda tus archivos después de descargarlos.';
   } catch {
     status.textContent = 'No pudimos verificar tu compra en este navegador. Si completaste el pago, comunícate con Jessy para recibir asistencia.';
     const contact = document.createElement('a');
