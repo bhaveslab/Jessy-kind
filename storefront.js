@@ -46,6 +46,7 @@ function render() {
   if (!count()) { const empty = document.createElement('p'); empty.className = 'muted'; empty.textContent = 'Tu carrito está vacío.'; container.append(empty); }
   $('cart-total').textContent = usd(Object.entries(cart).reduce((sum, [key, qty]) => sum + products[key].price * qty, 0));
   $('cart-checkout').disabled = !ready || !count();
+  $('cart-clear').disabled = !count();
   $('cart-status').textContent = ready ? 'Pago seguro mediante Stripe. Descarga digital después del pago.' : 'Las compras se habilitarán después de las pruebas de pago.';
   $('cart-payload').value = JSON.stringify(Object.entries(cart).map(([book, quantity]) => ({ book, quantity })));
 }
@@ -65,6 +66,7 @@ function closeCart() {
 $('cart-toggle').addEventListener('click', openCart);
 $('cart-close').addEventListener('click', closeCart);
 $('cart-backdrop').addEventListener('click', closeCart);
+$('cart-clear').addEventListener('click', () => { cart = {}; save(); render(); });
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && !$('cart-panel').hidden) closeCart(); });
 for (const button of document.querySelectorAll('.add-to-cart')) {
   button.addEventListener('click', () => { change(button.dataset.book, 1); openCart(); });
