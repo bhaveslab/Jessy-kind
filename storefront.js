@@ -1,7 +1,7 @@
 const products = {
   'vivir-bien-juntos': { name: 'Aprendamos los Secretos de Vivir Bien Juntos', price: 1699, cover: '/assets/main.webp' },
   'entre-dos-idiomas': { name: 'Between Two Languages / Entre Dos Idiomas', price: 999, cover: '/assets/lang.webp' },
-  'diario-navidad': { name: 'Diario de La Noche Antes de Navidad', price: 700, cover: '/assets/xmas.webp' },
+  'diario-navidad': { name: 'Diario de La Noche Antes de Navidad', price: 999, cover: '/assets/xmas.webp' },
 };
 const storageKey = 'jessy-kind-cart-v1';
 const $ = id => document.getElementById(id);
